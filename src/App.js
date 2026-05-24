@@ -1,11 +1,22 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabase";
 
+const CATEGORIE = [
+  { key: "all", en: "🌍 All", it: "🌍 Tutti" },
+  { key: "technical", en: "🎯 Technical", it: "🎯 Tecnico" },
+  { key: "tactical", en: "🧠 Tactical", it: "🧠 Tattico" },
+  { key: "physical", en: "💪 Physical", it: "💪 Fisico" },
+  { key: "mental", en: "🔥 Mental", it: "🔥 Mentale" },
+  { key: "competition", en: "🏆 Competition", it: "🏆 Competitivo" },
+  { key: "youth", en: "👶 Youth Dev", it: "👶 Giovanile" },
+  { key: "business", en: "💼 Business", it: "💼 Business" },
+  { key: "general", en: "💬 General", it: "💬 Generale" },
+];
+
 const T = {
   en: {
     siteName: "Court of Ideas",
     tagline: "A global community for tennis coaches",
-    topics: "Topics",
     newTopic: "+ New Topic",
     admin: "Admin",
     coaches: "Coaches",
@@ -18,8 +29,8 @@ const T = {
     submitComment: "Post Comment",
     comments: "Comments",
     noComments: "Be the first to share your opinion!",
-    noTopics: "No topics yet.",
-    search: "Search topics...",
+    noTopics: "No topics in this category yet.",
+    search: "Search by keyword...",
     topicTitle: "Topic title",
     topicTitlePlaceholder: "e.g. The serve technique in modern tennis",
     topicContent: "Content / Description",
@@ -28,6 +39,7 @@ const T = {
     imageUrl: "Image URL (optional)",
     externalLink: "External link (optional)",
     externalLinkLabel: "Link label (optional)",
+    categoria: "Category",
     publishTopic: "Publish Topic",
     saveChanges: "Save Changes",
     cancel: "Cancel",
@@ -49,16 +61,14 @@ const T = {
     sortRecent: "Most Recent",
     sortLikes: "Most Liked",
     sortStars: "Top Rated",
-    rateComment: "Rate this comment",
+    rateComment: "Rate",
     likeComment: "Helpful",
-    yourRating: "Your rating",
-    alreadyRated: "Already rated",
-    stars: "stars",
+    alreadyRated: "Rated",
+    filterBy: "Filter by category",
   },
   it: {
     siteName: "Court of Ideas",
     tagline: "Una community globale per maestri di tennis",
-    topics: "Argomenti",
     newTopic: "+ Nuovo Argomento",
     admin: "Admin",
     coaches: "Maestri",
@@ -71,8 +81,8 @@ const T = {
     submitComment: "Pubblica Commento",
     comments: "Commenti",
     noComments: "Sii il primo a condividere la tua opinione!",
-    noTopics: "Nessun argomento ancora.",
-    search: "Cerca argomenti...",
+    noTopics: "Nessun argomento in questa categoria.",
+    search: "Cerca per parola chiave...",
     topicTitle: "Titolo argomento",
     topicTitlePlaceholder: "es. La tecnica del servizio nel tennis moderno",
     topicContent: "Contenuto / Descrizione",
@@ -81,6 +91,7 @@ const T = {
     imageUrl: "URL Immagine (opzionale)",
     externalLink: "Link esterno (opzionale)",
     externalLinkLabel: "Etichetta link (opzionale)",
+    categoria: "Categoria",
     publishTopic: "Pubblica Argomento",
     saveChanges: "Salva Modifiche",
     cancel: "Annulla",
@@ -102,11 +113,10 @@ const T = {
     sortRecent: "Più recenti",
     sortLikes: "Più utili",
     sortStars: "Meglio valutati",
-    rateComment: "Valuta questo commento",
+    rateComment: "Valuta",
     likeComment: "Utile",
-    yourRating: "La tua valutazione",
-    alreadyRated: "Già valutato",
-    stars: "stelle",
+    alreadyRated: "Valutato",
+    filterBy: "Filtra per categoria",
   },
 };
 
@@ -127,12 +137,17 @@ function getYoutubeEmbed(url) {
   return null;
 }
 
+function getCatLabel(key, lang) {
+  const cat = CATEGORIE.find(c => c.key === key);
+  return cat ? cat[lang] : key;
+}
+
 const S = {
   page: { minHeight: "100vh", background: "#0a0a0a", fontFamily: "'DM Sans', sans-serif", color: "#f0ebe3" },
   header: { borderBottom: "1px solid #1e1e1e", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "rgba(10,10,10,0.95)", backdropFilter: "blur(12px)", zIndex: 100 },
   logo: { fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 700, color: "#c8a96e", letterSpacing: 1 },
   tagline: { fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginTop: 1 },
-  main: { maxWidth: 860, margin: "0 auto", padding: "48px 24px" },
+  main: { maxWidth: 900, margin: "0 auto", padding: "40px 24px" },
   card: { background: "#111", border: "1px solid #1e1e1e", borderRadius: 16, padding: 28, marginBottom: 20, cursor: "pointer", transition: "all 0.2s" },
   btn: { padding: "10px 22px", borderRadius: 10, border: "none", fontWeight: 700, cursor: "pointer", fontSize: 14, fontFamily: "'DM Sans', sans-serif" },
   btnGold: { background: "linear-gradient(135deg, #c8a96e, #e8c98e)", color: "#0a0a0a" },
@@ -144,23 +159,16 @@ const S = {
   tag: { background: "#1a1a1a", border: "1px solid #2a2a2a", color: "#c8a96e", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, letterSpacing: 1 },
 };
 
-// ── Star Rating ─────────────────────────────────────────────────
 function StarRating({ value, onChange, readonly, size = 18 }) {
   const [hovered, setHovered] = useState(0);
   return (
     <div style={{ display: "flex", gap: 3 }}>
       {[1, 2, 3, 4, 5].map(s => (
-        <span
-          key={s}
+        <span key={s}
           onClick={() => !readonly && onChange && onChange(s)}
           onMouseEnter={() => !readonly && setHovered(s)}
           onMouseLeave={() => !readonly && setHovered(0)}
-          style={{
-            fontSize: size,
-            cursor: readonly ? "default" : "pointer",
-            color: s <= (hovered || value) ? "#c8a96e" : "#333",
-            transition: "color 0.1s",
-          }}>
+          style={{ fontSize: size, cursor: readonly ? "default" : "pointer", color: s <= (hovered || value) ? "#c8a96e" : "#333", transition: "color 0.1s" }}>
           ★
         </span>
       ))}
@@ -168,9 +176,16 @@ function StarRating({ value, onChange, readonly, size = 18 }) {
   );
 }
 
-// ── Topic Form ──────────────────────────────────────────────────
-function TopicForm({ t, onSave, onCancel, editTopic }) {
-  const empty = { title: "", content: "", youtube_url: "", image_url: "", external_link: "", external_link_label: "" };
+function CategoryBadge({ catKey, lang }) {
+  const cat = CATEGORIE.find(c => c.key === catKey);
+  if (!cat || catKey === "general") return null;
+  return (
+    <span style={{ ...S.tag, marginRight: 6 }}>{cat[lang]}</span>
+  );
+}
+
+function TopicForm({ t, lang, onSave, onCancel, editTopic }) {
+  const empty = { title: "", content: "", youtube_url: "", image_url: "", external_link: "", external_link_label: "", categoria: "general" };
   const [form, setForm] = useState(editTopic ? { ...editTopic } : empty);
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -185,12 +200,21 @@ function TopicForm({ t, onSave, onCancel, editTopic }) {
   return (
     <div style={{ background: "#111", border: "1px solid #2a2a2a", borderRadius: 20, padding: 32, maxWidth: 640, margin: "0 auto" }}>
       <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, color: "#c8a96e", margin: "0 0 28px" }}>
-        {editTopic ? "✏️ " + t.edit : "✦ " + t.newTopic.replace("+ ", "").replace("+ ", "")}
+        {editTopic ? "✏️ " + t.edit : "✦ " + t.newTopic.replace("+ ", "")}
       </h2>
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <div>
           <label style={S.label}>{t.topicTitle} *</label>
           <input style={S.input} value={form.title} onChange={e => set("title", e.target.value)} placeholder={t.topicTitlePlaceholder} />
+        </div>
+        <div>
+          <label style={S.label}>{t.categoria}</label>
+          <select value={form.categoria} onChange={e => set("categoria", e.target.value)}
+            style={{ ...S.input, cursor: "pointer" }}>
+            {CATEGORIE.filter(c => c.key !== "all").map(c => (
+              <option key={c.key} value={c.key}>{c[lang]}</option>
+            ))}
+          </select>
         </div>
         <div>
           <label style={S.label}>{t.topicContent} *</label>
@@ -225,8 +249,7 @@ function TopicForm({ t, onSave, onCancel, editTopic }) {
   );
 }
 
-// ── Topic Card ──────────────────────────────────────────────────
-function TopicCard({ topic, t, onClick, isAdmin, onEdit, onDelete }) {
+function TopicCard({ topic, t, lang, onClick, isAdmin, onEdit, onDelete }) {
   const commentCount = topic.comment_count || 0;
   const avgStars = topic.avg_stars ? parseFloat(topic.avg_stars).toFixed(1) : null;
   return (
@@ -234,12 +257,13 @@ function TopicCard({ topic, t, onClick, isAdmin, onEdit, onDelete }) {
       onMouseEnter={e => { e.currentTarget.style.borderColor = "#c8a96e44"; e.currentTarget.style.transform = "translateY(-2px)"; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = "#1e1e1e"; e.currentTarget.style.transform = ""; }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {topic.youtube_url && <span style={S.tag}>🎥 VIDEO</span>}
-          {topic.image_url && <span style={S.tag}>🖼️ IMAGE</span>}
-          {topic.external_link && <span style={S.tag}>🔗 LINK</span>}
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+          <CategoryBadge catKey={topic.categoria} lang={lang} />
+          {topic.youtube_url && <span style={S.tag}>🎥</span>}
+          {topic.image_url && <span style={S.tag}>🖼️</span>}
+          {topic.external_link && <span style={S.tag}>🔗</span>}
         </div>
-        <span style={{ fontSize: 12, color: "#444" }}>{timeAgo(topic.created_at, t)}</span>
+        <span style={{ fontSize: 12, color: "#444", flexShrink: 0, marginLeft: 8 }}>{timeAgo(topic.created_at, t)}</span>
       </div>
       <h3 onClick={onClick} style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 700, color: "#f0ebe3", margin: "0 0 12px", cursor: "pointer", lineHeight: 1.3 }}>
         {topic.title}
@@ -275,13 +299,9 @@ function TopicCard({ topic, t, onClick, isAdmin, onEdit, onDelete }) {
   );
 }
 
-// ── Comment Card ────────────────────────────────────────────────
 function CommentCard({ c, t, isAdmin, onDelete, onLike, onRate, ratedIds, likedIds }) {
   const alreadyRated = ratedIds.includes(c.id);
   const alreadyLiked = likedIds.includes(c.id);
-  const avgStars = c.stelle || 0;
-  const rateCount = c.rate_count || 0;
-
   return (
     <div style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: 14, padding: 22, marginBottom: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
@@ -301,44 +321,24 @@ function CommentCard({ c, t, isAdmin, onDelete, onLike, onRate, ratedIds, likedI
           )}
         </div>
       </div>
-
       <p style={{ color: "#aaa", fontSize: 14, lineHeight: 1.7, margin: "0 0 16px", whiteSpace: "pre-wrap" }}>{c.testo}</p>
-
-      {/* Rating + Like bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid #1a1a1a", paddingTop: 14, flexWrap: "wrap", gap: 12 }}>
-
-        {/* Stars */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {!alreadyRated ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <>
               <span style={{ fontSize: 11, color: "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>{t.rateComment}:</span>
               <StarRating value={0} onChange={(s) => onRate(c.id, s)} size={18} />
-            </div>
+            </>
           ) : (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <StarRating value={Math.round(avgStars)} readonly size={16} />
-              {rateCount > 0 && (
-                <span style={{ fontSize: 12, color: "#c8a96e", fontWeight: 700 }}>
-                  {parseFloat(avgStars).toFixed(1)} ({rateCount})
-                </span>
-              )}
+            <>
+              <StarRating value={Math.round(c.stelle || 0)} readonly size={16} />
+              {c.rate_count > 0 && <span style={{ fontSize: 12, color: "#c8a96e", fontWeight: 700 }}>{parseFloat(c.stelle).toFixed(1)} ({c.rate_count})</span>}
               <span style={{ fontSize: 11, color: "#444" }}>— {t.alreadyRated}</span>
-            </div>
+            </>
           )}
         </div>
-
-        {/* Like */}
-        <button
-          onClick={() => !alreadyLiked && onLike(c.id)}
-          style={{
-            ...S.btn,
-            background: alreadyLiked ? "#1a2a1a" : "#1e1e1e",
-            color: alreadyLiked ? "#4ade80" : "#888",
-            fontSize: 12,
-            padding: "6px 14px",
-            border: alreadyLiked ? "1px solid #4ade8044" : "1px solid transparent",
-            cursor: alreadyLiked ? "default" : "pointer",
-          }}>
+        <button onClick={() => !alreadyLiked && onLike(c.id)}
+          style={{ ...S.btn, background: alreadyLiked ? "#1a2a1a" : "#1e1e1e", color: alreadyLiked ? "#4ade80" : "#888", fontSize: 12, padding: "6px 14px", border: alreadyLiked ? "1px solid #4ade8044" : "1px solid transparent", cursor: alreadyLiked ? "default" : "pointer" }}>
           👍 {t.likeComment} {c.likes > 0 ? `(${c.likes})` : ""}
         </button>
       </div>
@@ -346,8 +346,7 @@ function CommentCard({ c, t, isAdmin, onDelete, onLike, onRate, ratedIds, likedI
   );
 }
 
-// ── Topic Detail ────────────────────────────────────────────────
-function TopicDetail({ topic, t, onBack, isAdmin, onEdit, onDelete }) {
+function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
   const [comments, setComments] = useState([]);
   const [nome, setNome] = useState("");
   const [paese, setPaese] = useState("");
@@ -412,11 +411,11 @@ function TopicDetail({ topic, t, onBack, isAdmin, onEdit, onDelete }) {
   };
 
   return (
-    <div style={{ maxWidth: 860, margin: "0 auto" }}>
+    <div>
       <button onClick={onBack} style={{ ...S.btn, ...S.btnDark, marginBottom: 28, fontSize: 13 }}>{t.backToTopics}</button>
-
       <div style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: 20, padding: 36, marginBottom: 24 }}>
-        <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+          <CategoryBadge catKey={topic.categoria} lang={lang} />
           {topic.youtube_url && <span style={S.tag}>🎥 VIDEO</span>}
           {topic.image_url && <span style={S.tag}>🖼️ IMAGE</span>}
           {topic.external_link && <span style={S.tag}>🔗 LINK</span>}
@@ -449,7 +448,7 @@ function TopicDetail({ topic, t, onBack, isAdmin, onEdit, onDelete }) {
 
       {/* Comment form */}
       <div style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: 20, padding: 28, marginBottom: 24 }}>
-        <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: "#c8a96e", margin: "0 0 20px" }}>✦ Share your opinion</h3>
+        <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: "#c8a96e", margin: "0 0 20px" }}>✦ {t.yourOpinion.replace("...", "")}</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
           <div>
             <label style={S.label}>{t.yourName} *</label>
@@ -470,7 +469,7 @@ function TopicDetail({ topic, t, onBack, isAdmin, onEdit, onDelete }) {
       </div>
 
       {/* Sort + Comments */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
         <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: "#f0ebe3", margin: 0 }}>
           💬 {comments.length} {t.comments}
         </h3>
@@ -501,7 +500,6 @@ function TopicDetail({ topic, t, onBack, isAdmin, onEdit, onDelete }) {
   );
 }
 
-// ── Main App ────────────────────────────────────────────────────
 export default function App() {
   const [lang, setLang] = useState("en");
   const t = T[lang];
@@ -512,6 +510,7 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [editTopic, setEditTopic] = useState(null);
   const [search, setSearch] = useState("");
+  const [activeCat, setActiveCat] = useState("all");
 
   const caricaTopics = async () => {
     setLoading(true);
@@ -549,16 +548,21 @@ export default function App() {
     setSelectedTopic(null);
   };
 
-  const filtered = topics.filter(tp =>
-    tp.title.toLowerCase().includes(search.toLowerCase()) ||
-    tp.content.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = topics.filter(tp => {
+    const matchCat = activeCat === "all" || tp.categoria === activeCat;
+    const matchSearch = search === "" ||
+      tp.title.toLowerCase().includes(search.toLowerCase()) ||
+      tp.content.toLowerCase().includes(search.toLowerCase()) ||
+      getCatLabel(tp.categoria, lang).toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
+  });
 
   const isAdmin = view === "admin";
 
   return (
     <div style={S.page}>
       <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+
       <header style={S.header}>
         <div>
           <div style={S.logo}>✦ {t.siteName}</div>
@@ -584,25 +588,26 @@ export default function App() {
 
       <main style={S.main}>
         {showForm ? (
-          <TopicForm t={t} editTopic={editTopic} onSave={saveTopic} onCancel={() => { setShowForm(false); setEditTopic(null); }} />
+          <TopicForm t={t} lang={lang} editTopic={editTopic} onSave={saveTopic} onCancel={() => { setShowForm(false); setEditTopic(null); }} />
         ) : selectedTopic ? (
-          <TopicDetail
-            topic={selectedTopic} t={t} isAdmin={isAdmin}
+          <TopicDetail topic={selectedTopic} t={t} lang={lang} isAdmin={isAdmin}
             onBack={() => setSelectedTopic(null)}
             onEdit={(tp) => { setEditTopic(tp); setShowForm(true); }}
-            onDelete={async (id) => { await deleteTopic(id); }}
-          />
+            onDelete={async (id) => { await deleteTopic(id); }} />
         ) : (
           <>
-            <div style={{ textAlign: "center", marginBottom: 48 }}>
+            {/* Hero */}
+            <div style={{ textAlign: "center", marginBottom: 40 }}>
               <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 52, fontWeight: 700, color: "#f0ebe3", margin: "0 0 12px", lineHeight: 1.1 }}>
                 Court of <span style={{ color: "#c8a96e" }}>Ideas</span>
               </h1>
               <p style={{ color: "#555", fontSize: 16, margin: 0 }}>{t.tagline}</p>
             </div>
-            <div style={{ display: "flex", gap: 12, marginBottom: 32 }}>
+
+            {/* Search */}
+            <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
               <div style={{ flex: 1, position: "relative" }}>
-                <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#444", fontSize: 16 }}>🔍</span>
+                <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#444" }}>🔍</span>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.search}
                   style={{ ...S.input, paddingLeft: 40 }} />
               </div>
@@ -612,6 +617,22 @@ export default function App() {
                 </button>
               )}
             </div>
+
+            {/* Category filters */}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 32 }}>
+              {CATEGORIE.map(cat => (
+                <button key={cat.key} onClick={() => setActiveCat(cat.key)}
+                  style={{ ...S.btn, fontSize: 12, padding: "7px 14px",
+                    background: activeCat === cat.key ? "#c8a96e" : "#151515",
+                    color: activeCat === cat.key ? "#0a0a0a" : "#666",
+                    border: activeCat === cat.key ? "none" : "1px solid #1e1e1e",
+                  }}>
+                  {cat[lang]}
+                </button>
+              ))}
+            </div>
+
+            {/* Topics */}
             {loading ? (
               <div style={{ textAlign: "center", padding: "60px 0", color: "#444" }}>{t.loading}</div>
             ) : filtered.length === 0 ? (
@@ -621,7 +642,7 @@ export default function App() {
               </div>
             ) : (
               filtered.map(tp => (
-                <TopicCard key={tp.id} topic={tp} t={t} isAdmin={isAdmin}
+                <TopicCard key={tp.id} topic={tp} t={t} lang={lang} isAdmin={isAdmin}
                   onClick={() => setSelectedTopic(tp)}
                   onEdit={(tp) => { setEditTopic(tp); setShowForm(true); }}
                   onDelete={deleteTopic} />

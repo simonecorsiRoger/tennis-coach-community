@@ -651,6 +651,13 @@ export default function App() {
           </>
         )}
       </main>
+
+      {/* Footer */}
+      <footer style={{ borderTop: "1px solid #1a1a1a", marginTop: 60, padding: "28px 24px", textAlign: "center" }}>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: "#c8a96e", marginBottom: 8 }}>✦ Court of Ideas</div>
+        <div style={{ fontSize: 12, color: "#555", marginBottom: 6 }}>A global community for tennis coaches 🎾</div>
+        <div style={{ fontSize: 11, color: "#333", letterSpacing: 1 }}>© {new Date().getFullYear()} Court of Ideas — All rights reserved</div>
+      </footer>
     </div>
   );
 }

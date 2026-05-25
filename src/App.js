@@ -20,7 +20,7 @@ const T = {
     newTopic: "+ New Topic",
     admin: "Admin",
     coaches: "Coaches",
-    backToTopics: "← Back to topics",
+    backToTopics: "← Back",
     yourName: "Your name",
     yourNamePlaceholder: "e.g. Rafael Mendez",
     country: "Country (optional)",
@@ -57,27 +57,25 @@ const T = {
     daysAgo: "d ago",
     visitLink: "Visit link",
     langToggle: "🇮🇹 Italiano",
-    proposeTopic: "Propose a Topic",
-    proposeTitle: "Topic Title *",
-    proposeContent: "Describe your topic *",
-    proposeYourName: "Your name *",
-    proposeCountry: "Your country",
-    proposeSubmit: "Submit for Review",
-    proposeSuccess: "✅ Your topic has been submitted! The admin will review it shortly.",
-    proposeTab: "💡 Propose",
-    pendingTopics: "Pending Approval",
-    approve: "✅ Approve",
-    reject: "🗑️ Reject",
-    noPending: "No topics pending approval.",
-    proposedBy: "Proposed by",
-    sortBy: "Sort by",
     sortRecent: "Most Recent",
     sortLikes: "Most Liked",
     sortStars: "Top Rated",
     rateComment: "Rate",
     likeComment: "Helpful",
     alreadyRated: "Rated",
-    filterBy: "Filter by category",
+    proposeTopic: "💡 Propose a Topic",
+    proposeSubtitle: "Your proposal will be reviewed by the admin before publication.",
+    proposeYourName: "Your name *",
+    proposeCountry: "Your country (optional)",
+    proposeTitle: "Topic title *",
+    proposeContent: "Describe your topic *",
+    proposeSubmit: "Submit for Review",
+    proposeSuccess: "Your topic has been submitted! The admin will review it shortly.",
+    pendingTopics: "Pending Approval",
+    approve: "✅ Approve",
+    reject: "🗑️ Reject",
+    noPending: "No topics pending approval.",
+    proposedBy: "Proposed by",
   },
   it: {
     siteName: "The Coaching Room",
@@ -85,7 +83,7 @@ const T = {
     newTopic: "+ Nuovo Argomento",
     admin: "Admin",
     coaches: "Maestri",
-    backToTopics: "← Torna agli argomenti",
+    backToTopics: "← Torna",
     yourName: "Il tuo nome",
     yourNamePlaceholder: "es. Rafael Mendez",
     country: "Paese (opzionale)",
@@ -122,27 +120,25 @@ const T = {
     daysAgo: "g fa",
     visitLink: "Visita link",
     langToggle: "🇬🇧 English",
-    proposeTopic: "Proponi un Argomento",
-    proposeTitle: "Titolo argomento *",
-    proposeContent: "Descrivi il tuo argomento *",
-    proposeYourName: "Il tuo nome *",
-    proposeCountry: "Il tuo paese",
-    proposeSubmit: "Invia per revisione",
-    proposeSuccess: "✅ Il tuo argomento è stato inviato! L'admin lo revisionerà a breve.",
-    proposeTab: "💡 Proponi",
-    pendingTopics: "In attesa di approvazione",
-    approve: "✅ Approva",
-    reject: "🗑️ Rifiuta",
-    noPending: "Nessun argomento in attesa.",
-    proposedBy: "Proposto da",
-    sortBy: "Ordina per",
     sortRecent: "Più recenti",
     sortLikes: "Più utili",
     sortStars: "Meglio valutati",
     rateComment: "Valuta",
     likeComment: "Utile",
     alreadyRated: "Valutato",
-    filterBy: "Filtra per categoria",
+    proposeTopic: "💡 Proponi un Argomento",
+    proposeSubtitle: "La tua proposta sarà revisionata dall'admin prima della pubblicazione.",
+    proposeYourName: "Il tuo nome *",
+    proposeCountry: "Il tuo paese (opzionale)",
+    proposeTitle: "Titolo argomento *",
+    proposeContent: "Descrivi il tuo argomento *",
+    proposeSubmit: "Invia per revisione",
+    proposeSuccess: "Il tuo argomento è stato inviato! L'admin lo revisionerà a breve.",
+    pendingTopics: "In attesa di approvazione",
+    approve: "✅ Approva",
+    reject: "🗑️ Rifiuta",
+    noPending: "Nessun argomento in attesa.",
+    proposedBy: "Proposto da",
   },
 };
 
@@ -179,6 +175,7 @@ const S = {
   btnGold: { background: "linear-gradient(135deg, #c8a96e, #e8c98e)", color: "#0a0a0a" },
   btnDark: { background: "#1e1e1e", color: "#f0ebe3" },
   btnRed: { background: "#3d1a1a", color: "#f87171" },
+  btnGreen: { background: "#1a2a1a", color: "#4ade80", border: "1px solid #4ade8044" },
   input: { width: "100%", padding: "12px 16px", borderRadius: 10, border: "1px solid #2a2a2a", background: "#151515", color: "#f0ebe3", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" },
   textarea: { width: "100%", padding: "12px 16px", borderRadius: 10, border: "1px solid #2a2a2a", background: "#151515", color: "#f0ebe3", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box", resize: "vertical" },
   label: { fontSize: 12, fontWeight: 700, color: "#888", letterSpacing: 1, textTransform: "uppercase", display: "block", marginBottom: 8 },
@@ -204,12 +201,9 @@ function StarRating({ value, onChange, readonly, size = 18 }) {
 
 function CategoryBadge({ catKey, lang }) {
   const cat = CATEGORIE.find(c => c.key === catKey);
-  if (!cat || catKey === "general") return null;
-  return (
-    <span style={{ ...S.tag, marginRight: 6 }}>{cat[lang]}</span>
-  );
+  if (!cat || catKey === "general" || catKey === "all") return null;
+  return <span style={{ ...S.tag, marginRight: 6 }}>{cat[lang]}</span>;
 }
-
 
 // ── Proponi Argomento ───────────────────────────────────────────
 function ProponiArgomento({ t, onSubmit, onCancel }) {
@@ -221,7 +215,10 @@ function ProponiArgomento({ t, onSubmit, onCancel }) {
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async () => {
-    if (!titolo.trim() || !contenuto.trim() || !nome.trim()) return alert(t.titleRequired);
+    if (!titolo.trim() || !contenuto.trim() || !nome.trim()) {
+      alert(t.titleRequired);
+      return;
+    }
     setLoading(true);
     await onSubmit({ titolo, contenuto, nome, paese });
     setLoading(false);
@@ -231,17 +228,18 @@ function ProponiArgomento({ t, onSubmit, onCancel }) {
   if (success) {
     return (
       <div style={{ background: "#111", border: "1px solid #2a2a2a", borderRadius: 20, padding: 40, maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>🎾</div>
-        <div style={{ fontSize: 18, color: "#c8a96e", fontWeight: 700, fontFamily: "'Cormorant Garamond', serif", marginBottom: 16 }}>{t.proposeSuccess}</div>
-        <button onClick={onCancel} style={{ ...S.btn, ...S.btnDark }}>{t.cancel}</button>
+        <div style={{ fontSize: 56, marginBottom: 16 }}>🎾</div>
+        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, color: "#c8a96e", margin: "0 0 12px" }}>Thank you!</h2>
+        <p style={{ color: "#666", fontSize: 15, margin: "0 0 24px" }}>{t.proposeSuccess}</p>
+        <button onClick={onCancel} style={{ ...S.btn, ...S.btnDark }}>{t.backToTopics}</button>
       </div>
     );
   }
 
   return (
     <div style={{ background: "#111", border: "1px solid #2a2a2a", borderRadius: 20, padding: 32, maxWidth: 560, margin: "0 auto" }}>
-      <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, color: "#c8a96e", margin: "0 0 8px" }}>💡 {t.proposeTopic}</h2>
-      <p style={{ color: "#555", fontSize: 13, margin: "0 0 24px" }}>Your proposal will be reviewed by the admin before publication.</p>
+      <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, color: "#c8a96e", margin: "0 0 8px" }}>{t.proposeTopic}</h2>
+      <p style={{ color: "#555", fontSize: 13, margin: "0 0 24px" }}>{t.proposeSubtitle}</p>
       <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>
@@ -272,9 +270,9 @@ function ProponiArgomento({ t, onSubmit, onCancel }) {
   );
 }
 
-// ── Pending Topics (Admin) ──────────────────────────────────────
+// ── Pending Topics ──────────────────────────────────────────────
 function PendingTopics({ t, topics, onApprove, onReject, onBack }) {
-  const pending = topics.filter(tp => tp.stato === "in attesa");
+  const pending = (topics || []).filter(tp => tp.stato === "in attesa");
   return (
     <div style={{ maxWidth: 700, margin: "0 auto" }}>
       <button onClick={onBack} style={{ ...S.btn, ...S.btnDark, marginBottom: 24, fontSize: 13 }}>{t.backToTopics}</button>
@@ -289,25 +287,16 @@ function PendingTopics({ t, topics, onApprove, onReject, onBack }) {
       ) : (
         pending.map(tp => (
           <div key={tp.id} style={{ background: "#111", border: "1px solid #2a2a2a", borderRadius: 16, padding: 24, marginBottom: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-              <div>
-                <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: "#f0ebe3", margin: "0 0 6px" }}>{tp.title}</h3>
-                {tp.proposto_da && (
-                  <div style={{ fontSize: 12, color: "#555" }}>
-                    {t.proposedBy}: <span style={{ color: "#c8a96e", fontWeight: 700 }}>{tp.proposto_da}</span>
-                    {tp.proposto_paese && ` 🌍 ${tp.proposto_paese}`}
-                  </div>
-                )}
+            <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: "#f0ebe3", margin: "0 0 8px" }}>{tp.title}</h3>
+            {tp.proposto_da && (
+              <div style={{ fontSize: 12, color: "#c8a96e", fontWeight: 700, marginBottom: 12 }}>
+                {t.proposedBy}: {tp.proposto_da} {tp.proposto_paese ? `🌍 ${tp.proposto_paese}` : ""}
               </div>
-            </div>
+            )}
             <p style={{ color: "#666", fontSize: 14, lineHeight: 1.7, margin: "0 0 20px" }}>{tp.content}</p>
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => onApprove(tp.id)} style={{ ...S.btn, background: "#1a2a1a", color: "#4ade80", border: "1px solid #4ade8044", flex: 1 }}>
-                {t.approve}
-              </button>
-              <button onClick={() => onReject(tp.id)} style={{ ...S.btn, ...S.btnRed, flex: 1 }}>
-                {t.reject}
-              </button>
+              <button onClick={() => onApprove(tp.id)} style={{ ...S.btn, ...S.btnGreen, flex: 1 }}>{t.approve}</button>
+              <button onClick={() => onReject(tp.id)} style={{ ...S.btn, ...S.btnRed, flex: 1 }}>{t.reject}</button>
             </div>
           </div>
         ))
@@ -316,6 +305,7 @@ function PendingTopics({ t, topics, onApprove, onReject, onBack }) {
   );
 }
 
+// ── Topic Form ──────────────────────────────────────────────────
 function TopicForm({ t, lang, onSave, onCancel, editTopic }) {
   const empty = { title: "", content: "", youtube_url: "", image_url: "", external_link: "", external_link_label: "", categoria: "general" };
   const [form, setForm] = useState(editTopic ? { ...editTopic } : empty);
@@ -323,7 +313,7 @@ function TopicForm({ t, lang, onSave, onCancel, editTopic }) {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSubmit = async () => {
-    if (!form.title || !form.content) return alert(t.titleRequired);
+    if (!form.title || !form.content) { alert(t.titleRequired); return; }
     setLoading(true);
     await onSave(form);
     setLoading(false);
@@ -341,11 +331,8 @@ function TopicForm({ t, lang, onSave, onCancel, editTopic }) {
         </div>
         <div>
           <label style={S.label}>{t.categoria}</label>
-          <select value={form.categoria} onChange={e => set("categoria", e.target.value)}
-            style={{ ...S.input, cursor: "pointer" }}>
-            {CATEGORIE.filter(c => c.key !== "all").map(c => (
-              <option key={c.key} value={c.key}>{c[lang]}</option>
-            ))}
+          <select value={form.categoria} onChange={e => set("categoria", e.target.value)} style={{ ...S.input, cursor: "pointer" }}>
+            {CATEGORIE.filter(c => c.key !== "all").map(c => <option key={c.key} value={c.key}>{c[lang]}</option>)}
           </select>
         </div>
         <div>
@@ -381,6 +368,7 @@ function TopicForm({ t, lang, onSave, onCancel, editTopic }) {
   );
 }
 
+// ── Topic Card ──────────────────────────────────────────────────
 function TopicCard({ topic, t, lang, onClick, isAdmin, onEdit, onDelete }) {
   const commentCount = topic.comment_count || 0;
   const avgStars = topic.avg_stars ? parseFloat(topic.avg_stars).toFixed(1) : null;
@@ -431,6 +419,7 @@ function TopicCard({ topic, t, lang, onClick, isAdmin, onEdit, onDelete }) {
   );
 }
 
+// ── Comment Card ────────────────────────────────────────────────
 function CommentCard({ c, t, isAdmin, onDelete, onLike, onRate, ratedIds, likedIds }) {
   const alreadyRated = ratedIds.includes(c.id);
   const alreadyLiked = likedIds.includes(c.id);
@@ -448,9 +437,7 @@ function CommentCard({ c, t, isAdmin, onDelete, onLike, onRate, ratedIds, likedI
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 12, color: "#444" }}>{timeAgo(c.created_at, t)}</span>
-          {isAdmin && (
-            <button onClick={() => onDelete(c.id)} style={{ ...S.btn, ...S.btnRed, padding: "4px 10px", fontSize: 11 }}>✕</button>
-          )}
+          {isAdmin && <button onClick={() => onDelete(c.id)} style={{ ...S.btn, ...S.btnRed, padding: "4px 10px", fontSize: 11 }}>✕</button>}
         </div>
       </div>
       <p style={{ color: "#aaa", fontSize: 14, lineHeight: 1.7, margin: "0 0 16px", whiteSpace: "pre-wrap" }}>{c.testo}</p>
@@ -464,7 +451,7 @@ function CommentCard({ c, t, isAdmin, onDelete, onLike, onRate, ratedIds, likedI
           ) : (
             <>
               <StarRating value={Math.round(c.stelle || 0)} readonly size={16} />
-              {c.rate_count > 0 && <span style={{ fontSize: 12, color: "#c8a96e", fontWeight: 700 }}>{parseFloat(c.stelle).toFixed(1)} ({c.rate_count})</span>}
+              {c.rate_count > 0 && <span style={{ fontSize: 12, color: "#c8a96e", fontWeight: 700 }}>{parseFloat(c.stelle || 0).toFixed(1)} ({c.rate_count})</span>}
               <span style={{ fontSize: 11, color: "#444" }}>— {t.alreadyRated}</span>
             </>
           )}
@@ -478,6 +465,7 @@ function CommentCard({ c, t, isAdmin, onDelete, onLike, onRate, ratedIds, likedI
   );
 }
 
+// ── Topic Detail ────────────────────────────────────────────────
 function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
   const [comments, setComments] = useState([]);
   const [nome, setNome] = useState("");
@@ -485,8 +473,8 @@ function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
   const [testo, setTesto] = useState("");
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState("recent");
-  const [ratedIds, setRatedIds] = useState(() => JSON.parse(localStorage.getItem("rated_ids") || "[]"));
-  const [likedIds, setLikedIds] = useState(() => JSON.parse(localStorage.getItem("liked_ids") || "[]"));
+  const [ratedIds, setRatedIds] = useState(() => { try { return JSON.parse(localStorage.getItem("rated_ids") || "[]"); } catch { return []; } });
+  const [likedIds, setLikedIds] = useState(() => { try { return JSON.parse(localStorage.getItem("liked_ids") || "[]"); } catch { return []; } });
   const embedUrl = getYoutubeEmbed(topic.youtube_url);
 
   const caricaCommenti = async () => {
@@ -503,8 +491,8 @@ function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
   });
 
   const inviaCommento = async () => {
-    if (!nome.trim()) return alert(t.nameRequired);
-    if (!testo.trim()) return alert(t.commentRequired);
+    if (!nome.trim()) { alert(t.nameRequired); return; }
+    if (!testo.trim()) { alert(t.commentRequired); return; }
     setLoading(true);
     await supabase.from("commenti").insert([{ topic_id: topic.id, nome: nome.trim(), paese: paese.trim(), testo: testo.trim(), likes: 0, stelle: 0, rate_count: 0 }]);
     setTesto("");
@@ -524,7 +512,7 @@ function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
     await supabase.from("commenti").update({ likes: (c.likes || 0) + 1 }).eq("id", id);
     const newLiked = [...likedIds, id];
     setLikedIds(newLiked);
-    localStorage.setItem("liked_ids", JSON.stringify(newLiked));
+    try { localStorage.setItem("liked_ids", JSON.stringify(newLiked)); } catch {}
     await caricaCommenti();
   };
 
@@ -538,7 +526,7 @@ function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
     await supabase.from("commenti").update({ stelle: newStelle, rate_count: newCount }).eq("id", id);
     const newRated = [...ratedIds, id];
     setRatedIds(newRated);
-    localStorage.setItem("rated_ids", JSON.stringify(newRated));
+    try { localStorage.setItem("rated_ids", JSON.stringify(newRated)); } catch {}
     await caricaCommenti();
   };
 
@@ -578,7 +566,6 @@ function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
         )}
       </div>
 
-      {/* Comment form */}
       <div style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: 20, padding: 28, marginBottom: 24 }}>
         <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: "#c8a96e", margin: "0 0 20px" }}>✦ {t.yourOpinion.replace("...", "")}</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
@@ -600,7 +587,6 @@ function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
         </button>
       </div>
 
-      {/* Sort + Comments */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
         <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: "#f0ebe3", margin: 0 }}>
           💬 {comments.length} {t.comments}
@@ -632,6 +618,7 @@ function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
   );
 }
 
+// ── Main App ────────────────────────────────────────────────────
 export default function App() {
   const [lang, setLang] = useState("en");
   const t = T[lang];
@@ -640,11 +627,11 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [showPropose, setShowPropose] = useState(false);
+  const [showPending, setShowPending] = useState(false);
   const [editTopic, setEditTopic] = useState(null);
   const [search, setSearch] = useState("");
   const [activeCat, setActiveCat] = useState("all");
-  const [showPropose, setShowPropose] = useState(false);
-  const [showPending, setShowPending] = useState(false);
 
   const caricaTopics = async () => {
     setLoading(true);
@@ -666,9 +653,9 @@ export default function App() {
 
   const saveTopic = async (form) => {
     if (editTopic) {
-      await supabase.from("topics").update({ ...form }).eq("id", editTopic.id);
+      await supabase.from("topics").update({ ...form, stato: "pubblicato" }).eq("id", editTopic.id);
     } else {
-      await supabase.from("topics").insert([{ ...form }]);
+      await supabase.from("topics").insert([{ ...form, stato: "pubblicato", proposto_da: "", proposto_paese: "" }]);
     }
     await caricaTopics();
     setShowForm(false);
@@ -698,7 +685,7 @@ export default function App() {
   };
 
   const rifiutaTopic = async (id) => {
-    if (!window.confirm("Rifiutare e eliminare questa proposta?")) return;
+    if (!window.confirm(t.confirmDelete)) return;
     await supabase.from("topics").delete().eq("id", id);
     await caricaTopics();
   };
@@ -709,6 +696,7 @@ export default function App() {
     setSelectedTopic(null);
   };
 
+  const isAdmin = view === "admin";
   const pendingCount = topics.filter(tp => tp.stato === "in attesa").length;
 
   const filtered = topics.filter(tp => {
@@ -720,8 +708,6 @@ export default function App() {
       getCatLabel(tp.categoria, lang).toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
-
-  const isAdmin = view === "admin";
 
   return (
     <div style={S.page}>
@@ -738,11 +724,11 @@ export default function App() {
             {t.langToggle}
           </button>
           <div style={{ display: "flex", background: "#151515", borderRadius: 10, padding: 3, gap: 3 }}>
-            <button onClick={() => { setView("coaches"); setShowForm(false); setSelectedTopic(null); }}
+            <button onClick={() => { setView("coaches"); setShowForm(false); setShowPropose(false); setShowPending(false); setSelectedTopic(null); }}
               style={{ ...S.btn, fontSize: 12, padding: "7px 14px", background: !isAdmin ? "#c8a96e" : "transparent", color: !isAdmin ? "#0a0a0a" : "#666" }}>
               👤 {t.coaches}
             </button>
-            <button onClick={() => { setView("admin"); setShowForm(false); setSelectedTopic(null); }}
+            <button onClick={() => { setView("admin"); setShowForm(false); setShowPropose(false); setShowPending(false); setSelectedTopic(null); }}
               style={{ ...S.btn, fontSize: 12, padding: "7px 14px", background: isAdmin ? "#c8a96e" : "transparent", color: isAdmin ? "#0a0a0a" : "#666" }}>
               ⚙️ {t.admin}
             </button>
@@ -764,7 +750,6 @@ export default function App() {
             onDelete={async (id) => { await deleteTopic(id); }} />
         ) : (
           <>
-            {/* Hero */}
             <div style={{ textAlign: "center", marginBottom: 40 }}>
               <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 52, fontWeight: 700, color: "#f0ebe3", margin: "0 0 12px", lineHeight: 1.1 }}>
                 The <span style={{ color: "#c8a96e" }}>Coaching Room</span>
@@ -772,7 +757,6 @@ export default function App() {
               <p style={{ color: "#555", fontSize: 16, margin: 0 }}>{t.tagline}</p>
             </div>
 
-            {/* Search */}
             <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
               <div style={{ flex: 1, position: "relative" }}>
                 <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#444" }}>🔍</span>
@@ -783,8 +767,8 @@ export default function App() {
                 <div style={{ display: "flex", gap: 8 }}>
                   {pendingCount > 0 && (
                     <button onClick={() => setShowPending(true)}
-                      style={{ ...S.btn, background: "#fef3c7", color: "#78350f", border: "1px solid #fde68a", whiteSpace: "nowrap", position: "relative" }}>
-                      ⏳ {t.pendingTopics} ({pendingCount})
+                      style={{ ...S.btn, background: "#fef3c7", color: "#78350f", border: "1px solid #fde68a", whiteSpace: "nowrap" }}>
+                      ⏳ {pendingCount}
                     </button>
                   )}
                   <button onClick={() => { setShowForm(true); setEditTopic(null); }} style={{ ...S.btn, ...S.btnGold, whiteSpace: "nowrap" }}>
@@ -792,13 +776,13 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <button onClick={() => setShowPropose(true)} style={{ ...S.btn, background: "#1e1e1e", color: "#c8a96e", border: "1px solid #c8a96e44", whiteSpace: "nowrap" }}>
-                  {t.proposeTab}
+                <button onClick={() => setShowPropose(true)}
+                  style={{ ...S.btn, background: "#151515", color: "#c8a96e", border: "1px solid #c8a96e44", whiteSpace: "nowrap" }}>
+                  💡 Propose
                 </button>
               )}
             </div>
 
-            {/* Category filters */}
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 32 }}>
               {CATEGORIE.map(cat => (
                 <button key={cat.key} onClick={() => setActiveCat(cat.key)}
@@ -812,7 +796,6 @@ export default function App() {
               ))}
             </div>
 
-            {/* Topics */}
             {loading ? (
               <div style={{ textAlign: "center", padding: "60px 0", color: "#444" }}>{t.loading}</div>
             ) : filtered.length === 0 ? (
@@ -832,7 +815,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
       <footer style={{ borderTop: "1px solid #1a1a1a", marginTop: 60, padding: "28px 24px", textAlign: "center" }}>
         <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: "#c8a96e", marginBottom: 8 }}>✦ The Coaching Room</div>
         <div style={{ fontSize: 12, color: "#555", marginBottom: 6 }}>The global didactic hub for tennis coaches 🎾</div>

@@ -166,11 +166,11 @@ function getCatLabel(key, lang) {
 
 const S = {
   page: { minHeight: "100vh", background: "#0a0a0a", fontFamily: "'DM Sans', sans-serif", color: "#f0ebe3" },
-  header: { borderBottom: "1px solid #1e1e1e", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "rgba(10,10,10,0.95)", backdropFilter: "blur(12px)", zIndex: 100 },
-  logo: { fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 700, color: "#c8a96e", letterSpacing: 1 },
-  tagline: { fontSize: 11, color: "#555", letterSpacing: 2, textTransform: "uppercase", marginTop: 1 },
-  main: { maxWidth: 900, margin: "0 auto", padding: "40px 24px" },
-  card: { background: "#111", border: "1px solid #1e1e1e", borderRadius: 16, padding: 28, marginBottom: 20, cursor: "pointer", transition: "all 0.2s" },
+  header: { borderBottom: "1px solid #1e1e1e", padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "rgba(10,10,10,0.95)", backdropFilter: "blur(12px)", zIndex: 100 },
+  logo: { fontFamily: "'Cormorant Garamond', serif", fontSize: 17, fontWeight: 700, color: "#c8a96e", letterSpacing: 0.5 },
+  tagline: { fontSize: 9, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginTop: 1 },
+  main: { maxWidth: 900, margin: "0 auto", padding: "24px 16px" },
+  card: { background: "#111", border: "1px solid #1e1e1e", borderRadius: 14, padding: "18px 16px", marginBottom: 16, cursor: "pointer", transition: "all 0.2s" },
   btn: { padding: "10px 22px", borderRadius: 10, border: "none", fontWeight: 700, cursor: "pointer", fontSize: 14, fontFamily: "'DM Sans', sans-serif" },
   btnGold: { background: "linear-gradient(135deg, #c8a96e, #e8c98e)", color: "#0a0a0a" },
   btnDark: { background: "#1e1e1e", color: "#f0ebe3" },
@@ -385,7 +385,7 @@ function TopicCard({ topic, t, lang, onClick, isAdmin, onEdit, onDelete }) {
         </div>
         <span style={{ fontSize: 12, color: "#444", flexShrink: 0, marginLeft: 8 }}>{timeAgo(topic.created_at, t)}</span>
       </div>
-      <h3 onClick={onClick} style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 700, color: "#f0ebe3", margin: "0 0 12px", cursor: "pointer", lineHeight: 1.3 }}>
+      <h3 onClick={onClick} style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 700, color: "#f0ebe3", margin: "0 0 10px", cursor: "pointer", lineHeight: 1.3 }}>
         {topic.title}
       </h3>
       <p style={{ color: "#666", fontSize: 14, lineHeight: 1.7, margin: "0 0 20px" }}>
@@ -646,9 +646,9 @@ function AdminLoginModal({ t, onLogin, onClose }) {
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 16 }}
       onClick={onClose}>
-      <div style={{ background: "#111", border: "1px solid #2a2a2a", borderRadius: 20, padding: 36, width: "100%", maxWidth: 360 }}
+      <div style={{ background: "#111", border: "1px solid #2a2a2a", borderRadius: "20px 20px 0 0", padding: "28px 24px 40px", width: "100%", maxWidth: 480 }}
         onClick={e => e.stopPropagation()}>
         <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, color: "#c8a96e", margin: "0 0 6px" }}>⚙️ Admin Access</h2>
         <p style={{ color: "#555", fontSize: 13, margin: "0 0 24px" }}>Enter your password to access the admin panel.</p>
@@ -851,17 +851,17 @@ export default function App() {
             <div style={{ maxWidth: 720, margin: "0 auto 48px" }}>
               {/* Site title */}
               <div style={{ textAlign: "center", marginBottom: 40 }}>
-                <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 48, fontWeight: 700, color: "#f0ebe3", margin: "0 0 10px", lineHeight: 1.1 }}>
+                <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(28px, 6vw, 48px)", fontWeight: 700, color: "#f0ebe3", margin: "0 0 10px", lineHeight: 1.1 }}>
                   The Tennis <span style={{ color: "#c8a96e" }}>Coaching Room</span>
                 </h1>
                 <p style={{ color: "#555", fontSize: 14, letterSpacing: 2, textTransform: "uppercase", margin: 0 }}>{t.tagline}</p>
               </div>
 
               {/* Intro box */}
-              <div style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: 20, padding: "36px 40px" }}>
+              <div style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: 16, padding: "20px 20px" }}>
                 {/* Opening quote */}
                 <div style={{ borderLeft: "3px solid #c8a96e", paddingLeft: 20, marginBottom: 28 }}>
-                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: "#c8a96e", fontStyle: "italic", lineHeight: 1.7, margin: 0 }}>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(14px, 3.5vw, 18px)", color: "#c8a96e", fontStyle: "italic", lineHeight: 1.7, margin: 0 }}>
                     {lang === "it"
                       ? "&ldquo;La crescita vera non nasce da ciò che sai &mdash; nasce dal coraggio di mettere ciò che sai a confronto con chi la pensa diversamente da te.&rdquo;"
                       : "&ldquo;True growth does not come from what you know &mdash; it comes from the courage to put what you know in confrontation with those who think differently from you.&rdquo;"}
@@ -869,12 +869,12 @@ export default function App() {
                 </div>
 
                 {/* Main text */}
-                <p style={{ color: "#888", fontSize: 15, lineHeight: 1.85, margin: "0 0 20px" }}>
+                <p style={{ color: "#888", fontSize: "clamp(13px, 3vw, 15px)", lineHeight: 1.85, margin: "0 0 16px" }}>
                   {lang === "it"
                     ? "Ogni grande maestro ha una storia. Una filosofia. Un metodo costruito in anni di campo. The Tennis Coaching Room è il luogo dove quelle storie si incontrano."
                     : "Every great coach has a story. A philosophy. A method built over years on the court. The Tennis Coaching Room is the place where those stories meet."}
                 </p>
-                <p style={{ color: "#888", fontSize: 15, lineHeight: 1.85, margin: "0 0 20px" }}>
+                <p style={{ color: "#888", fontSize: "clamp(13px, 3vw, 15px)", lineHeight: 1.85, margin: "0 0 16px" }}>
                   {lang === "it"
                     ? "Ogni argomento è una domanda aperta — rispondi come se stessi rilasciando un'intervista, o come stessi parlando con un collega al Club. Perché il modo in cui vedi il gioco è plasmato dalla tua esperienza, dalla tua cultura, dal tuo percorso. Il tennis è universale — ma ogni maestro lo legge in modo diverso. Ed è proprio in quelle differenze che si nascondono le lezioni più preziose."
                     : "Each topic is an open question — answer it as if you were being interviewed, or as if you were talking to a colleague at the club. Because the way you see the game is shaped by your experience, your culture, your journey. Tennis is universal — but every coach reads it differently. And it is precisely in those differences that the richest lessons hide."}
@@ -904,7 +904,7 @@ export default function App() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
               <div style={{ flex: 1, position: "relative" }}>
                 <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#444" }}>🔍</span>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.search}
@@ -930,7 +930,7 @@ export default function App() {
               )}
             </div>
 
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 32 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "nowrap", overflowX: "auto", marginBottom: 24, paddingBottom: 8, WebkitOverflowScrolling: "touch" }}>
               {CATEGORIE.map(cat => (
                 <button key={cat.key} onClick={() => setActiveCat(cat.key)}
                   style={{ ...S.btn, fontSize: 12, padding: "7px 14px",

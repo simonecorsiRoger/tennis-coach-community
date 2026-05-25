@@ -863,8 +863,8 @@ export default function App() {
                 <div style={{ borderLeft: "3px solid #c8a96e", paddingLeft: 20, marginBottom: 28 }}>
                   <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: "#c8a96e", fontStyle: "italic", lineHeight: 1.7, margin: 0 }}>
                     {lang === "it"
-                      ? ""La crescita vera non nasce da ciò che sai — nasce dal coraggio di mettere ciò che sai a confronto con chi la pensa diversamente da te.""
-                      : ""True growth does not come from what you know — it comes from the courage to put what you know in confrontation with those who think differently from you.""}
+                      ? "&ldquo;La crescita vera non nasce da ciò che sai &mdash; nasce dal coraggio di mettere ciò che sai a confronto con chi la pensa diversamente da te.&rdquo;"
+                      : "&ldquo;True growth does not come from what you know &mdash; it comes from the courage to put what you know in confrontation with those who think differently from you.&rdquo;"}
                   </p>
                 </div>
 
@@ -896,8 +896,8 @@ export default function App() {
                 <div style={{ borderTop: "1px solid #1e1e1e", paddingTop: 24 }}>
                   <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: "#555", fontStyle: "italic", lineHeight: 1.7, margin: "0 0 8px" }}>
                     {lang === "it"
-                      ? ""Se tu hai una mela e io ho una mela e ce le scambiamo, abbiamo entrambi ancora una mela. Ma se tu hai un'idea e io ho un'idea e ce le scambiamo, abbiamo entrambi due idee.""
-                      : ""If you have an apple and I have an apple and we exchange apples, we both still have one apple. But if you have an idea and I have an idea and we exchange ideas, we each now have two ideas.""}
+                      ? "&ldquo;Se tu hai una mela e io ho una mela e ce le scambiamo, abbiamo entrambi ancora una mela. Ma se tu hai un'idea e io ho un'idea e ce le scambiamo, abbiamo entrambi due idee.&rdquo;"
+                      : "&ldquo;If you have an apple and I have an apple and we exchange apples, we both still have one apple. But if you have an idea and I have an idea and we exchange ideas, we each now have two ideas.&rdquo;"}
                   </p>
                   <p style={{ color: "#444", fontSize: 13, margin: 0, textAlign: "right" }}>— George Bernard Shaw</p>
                 </div>

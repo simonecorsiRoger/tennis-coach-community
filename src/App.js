@@ -702,10 +702,20 @@ export default function App() {
   useEffect(() => { caricaTopics(); }, []);
 
   const saveTopic = async (form) => {
+    const payload = {
+      title: form.title,
+      content: form.content,
+      youtube_url: form.youtube_url || "",
+      image_url: form.image_url || "",
+      external_link: form.external_link || "",
+      external_link_label: form.external_link_label || "",
+      categoria: form.categoria || "general",
+      stato: "pubblicato",
+    };
     if (editTopic) {
-      await supabase.from("topics").update({ ...form, stato: "pubblicato" }).eq("id", editTopic.id);
+      await supabase.from("topics").update(payload).eq("id", editTopic.id);
     } else {
-      await supabase.from("topics").insert([{ ...form, stato: "pubblicato", proposto_da: "", proposto_paese: "" }]);
+      await supabase.from("topics").insert([{ ...payload, proposto_da: "", proposto_paese: "" }]);
     }
     await caricaTopics();
     setShowForm(false);

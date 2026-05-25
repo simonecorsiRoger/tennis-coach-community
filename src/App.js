@@ -15,7 +15,7 @@ const CATEGORIE = [
 
 const T = {
   en: {
-    siteName: "The Coaching Room",
+    siteName: "The Tennis Coaching Room",
     tagline: "The global didactic hub for tennis coaches",
     newTopic: "+ New Topic",
     admin: "Admin",
@@ -78,7 +78,7 @@ const T = {
     proposedBy: "Proposed by",
   },
   it: {
-    siteName: "The Coaching Room",
+    siteName: "The Tennis Coaching Room",
     tagline: "Il polo didattico globale per maestri di tennis",
     newTopic: "+ Nuovo Argomento",
     admin: "Admin",
@@ -408,12 +408,24 @@ function TopicCard({ topic, t, lang, onClick, isAdmin, onEdit, onDelete }) {
             </div>
           )}
         </div>
-        {isAdmin && (
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={e => { e.stopPropagation(); onEdit(topic); }} style={{ ...S.btn, ...S.btnDark, fontSize: 12, padding: "8px 14px" }}>✏️</button>
-            <button onClick={e => { e.stopPropagation(); if (window.confirm(t.confirmDelete)) onDelete(topic.id); }} style={{ ...S.btn, ...S.btnRed, fontSize: 12, padding: "8px 14px" }}>🗑️</button>
-          </div>
-        )}
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button
+            onClick={e => {
+              e.stopPropagation();
+              const url = `${window.location.origin}${window.location.pathname}?topic=${topic.id}`;
+              navigator.clipboard.writeText(url).then(() => alert("🔗 Link copied! Share it on Instagram or WhatsApp."));
+            }}
+            style={{ ...S.btn, background: "none", color: "#444", fontSize: 12, padding: "6px 10px", border: "1px solid #2a2a2a" }}
+            title="Copy link">
+            🔗
+          </button>
+          {isAdmin && (
+            <>
+              <button onClick={e => { e.stopPropagation(); onEdit(topic); }} style={{ ...S.btn, ...S.btnDark, fontSize: 12, padding: "8px 14px" }}>✏️</button>
+              <button onClick={e => { e.stopPropagation(); if (window.confirm(t.confirmDelete)) onDelete(topic.id); }} style={{ ...S.btn, ...S.btnRed, fontSize: 12, padding: "8px 14px" }}>🗑️</button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -623,7 +635,7 @@ function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
 function AdminLoginModal({ t, onLogin, onClose }) {
   const [password, setPassword] = useState("");
   const [errore, setErrore] = useState("");
-  const ADMIN_PASSWORD = "coachingroom2026";
+  const ADMIN_PASSWORD = "tenniscoachingroom2026";
 
   const handleLogin = () => {
     if (password === ADMIN_PASSWORD) {
@@ -674,6 +686,13 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [topics, setTopics] = useState([]);
+  const [directTopicId, setDirectTopicId] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("topic");
+      return id ? parseInt(id) : null;
+    } catch { return null; }
+  });
   const [loading, setLoading] = useState(true);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -700,6 +719,16 @@ export default function App() {
   };
 
   useEffect(() => { caricaTopics(); }, []);
+
+  useEffect(() => {
+    if (directTopicId && topics.length > 0) {
+      const found = topics.find(tp => tp.id === directTopicId);
+      if (found) {
+        setSelectedTopic(found);
+        setDirectTopicId(null);
+      }
+    }
+  }, [directTopicId, topics]);
 
   const saveTopic = async (form) => {
     const payload = {
@@ -781,7 +810,7 @@ export default function App() {
 
       <header style={S.header}>
         <div>
-          <div style={S.logo}>✦ {t.siteName}</div>
+          <div style={S.logo}>✦ The Tennis Coaching Room</div>
           <div style={S.tagline}>{t.tagline}</div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -819,11 +848,60 @@ export default function App() {
             onDelete={async (id) => { await deleteTopic(id); }} />
         ) : (
           <>
-            <div style={{ textAlign: "center", marginBottom: 40 }}>
-              <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 52, fontWeight: 700, color: "#f0ebe3", margin: "0 0 12px", lineHeight: 1.1 }}>
-                The <span style={{ color: "#c8a96e" }}>Coaching Room</span>
-              </h1>
-              <p style={{ color: "#555", fontSize: 16, margin: 0 }}>{t.tagline}</p>
+            <div style={{ maxWidth: 720, margin: "0 auto 48px" }}>
+              {/* Site title */}
+              <div style={{ textAlign: "center", marginBottom: 40 }}>
+                <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 48, fontWeight: 700, color: "#f0ebe3", margin: "0 0 10px", lineHeight: 1.1 }}>
+                  The Tennis <span style={{ color: "#c8a96e" }}>Coaching Room</span>
+                </h1>
+                <p style={{ color: "#555", fontSize: 14, letterSpacing: 2, textTransform: "uppercase", margin: 0 }}>{t.tagline}</p>
+              </div>
+
+              {/* Intro box */}
+              <div style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: 20, padding: "36px 40px" }}>
+                {/* Opening quote */}
+                <div style={{ borderLeft: "3px solid #c8a96e", paddingLeft: 20, marginBottom: 28 }}>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: "#c8a96e", fontStyle: "italic", lineHeight: 1.7, margin: 0 }}>
+                    {lang === "it"
+                      ? ""La crescita vera non nasce da ciò che sai — nasce dal coraggio di mettere ciò che sai a confronto con chi la pensa diversamente da te.""
+                      : ""True growth does not come from what you know — it comes from the courage to put what you know in confrontation with those who think differently from you.""}
+                  </p>
+                </div>
+
+                {/* Main text */}
+                <p style={{ color: "#888", fontSize: 15, lineHeight: 1.85, margin: "0 0 20px" }}>
+                  {lang === "it"
+                    ? "Ogni grande maestro ha una storia. Una filosofia. Un metodo costruito in anni di campo. The Tennis Coaching Room è il luogo dove quelle storie si incontrano."
+                    : "Every great coach has a story. A philosophy. A method built over years on the court. The Tennis Coaching Room is the place where those stories meet."}
+                </p>
+                <p style={{ color: "#888", fontSize: 15, lineHeight: 1.85, margin: "0 0 20px" }}>
+                  {lang === "it"
+                    ? "Ogni argomento è una domanda aperta — rispondi come se stessi rilasciando un'intervista, o come stessi parlando con un collega al Club. Perché il modo in cui vedi il gioco è plasmato dalla tua esperienza, dalla tua cultura, dal tuo percorso. Il tennis è universale — ma ogni maestro lo legge in modo diverso. Ed è proprio in quelle differenze che si nascondono le lezioni più preziose."
+                    : "Each topic is an open question — answer it as if you were being interviewed, or as if you were talking to a colleague at the club. Because the way you see the game is shaped by your experience, your culture, your journey. Tennis is universal — but every coach reads it differently. And it is precisely in those differences that the richest lessons hide."}
+                </p>
+                <p style={{ color: "#666", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>
+                  {lang === "it"
+                    ? "Leggi le opinioni di maestri da tutto il mondo. Confrontati. Lasciati ispirare. Cresci. Il tuo commento può essere anonimo — non esistono risposte giuste o sbagliate, solo l'esperienza che parla."
+                    : "Read the opinions of coaches from around the world. Compare. Be inspired. Grow. Your comment can be anonymous — there are no right or wrong answers, only experience speaking."}
+                </p>
+
+                {/* Tag line */}
+                <div style={{ textAlign: "center", marginBottom: 28 }}>
+                  <span style={{ color: "#c8a96e", fontSize: 15, fontWeight: 700, letterSpacing: 1 }}>
+                    {lang === "it" ? "Un campo. Tanti maestri. Infinite prospettive." : "One court. Many coaches. Infinite perspectives."}
+                  </span>
+                </div>
+
+                {/* Shaw quote */}
+                <div style={{ borderTop: "1px solid #1e1e1e", paddingTop: 24 }}>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: "#555", fontStyle: "italic", lineHeight: 1.7, margin: "0 0 8px" }}>
+                    {lang === "it"
+                      ? ""Se tu hai una mela e io ho una mela e ce le scambiamo, abbiamo entrambi ancora una mela. Ma se tu hai un'idea e io ho un'idea e ce le scambiamo, abbiamo entrambi due idee.""
+                      : ""If you have an apple and I have an apple and we exchange apples, we both still have one apple. But if you have an idea and I have an idea and we exchange ideas, we each now have two ideas.""}
+                  </p>
+                  <p style={{ color: "#444", fontSize: 13, margin: 0, textAlign: "right" }}>— George Bernard Shaw</p>
+                </div>
+              </div>
             </div>
 
             <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
@@ -885,9 +963,9 @@ export default function App() {
       </main>
 
       <footer style={{ borderTop: "1px solid #1a1a1a", marginTop: 60, padding: "28px 24px", textAlign: "center" }}>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: "#c8a96e", marginBottom: 8 }}>✦ The Coaching Room</div>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: "#c8a96e", marginBottom: 8 }}>✦ The Tennis Coaching Room</div>
         <div style={{ fontSize: 12, color: "#555", marginBottom: 6 }}>The global didactic hub for tennis coaches 🎾</div>
-        <div style={{ fontSize: 11, color: "#333", letterSpacing: 1 }}>© {new Date().getFullYear()} The Coaching Room — All rights reserved</div>
+        <div style={{ fontSize: 11, color: "#333", letterSpacing: 1 }}>© {new Date().getFullYear()} The Tennis Coaching Room — All rights reserved</div>
       </footer>
     </div>
   );

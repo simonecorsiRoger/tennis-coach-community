@@ -618,11 +618,61 @@ function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
   );
 }
 
+
+// ── Admin Login Modal ───────────────────────────────────────────
+function AdminLoginModal({ t, onLogin, onClose }) {
+  const [password, setPassword] = useState("");
+  const [errore, setErrore] = useState("");
+  const ADMIN_PASSWORD = "coachingroom2026";
+
+  const handleLogin = () => {
+    if (password === ADMIN_PASSWORD) {
+      onLogin();
+    } else {
+      setErrore("Wrong password. Try again.");
+    }
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+      onClick={onClose}>
+      <div style={{ background: "#111", border: "1px solid #2a2a2a", borderRadius: 20, padding: 36, width: "100%", maxWidth: 360 }}
+        onClick={e => e.stopPropagation()}>
+        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, color: "#c8a96e", margin: "0 0 6px" }}>⚙️ Admin Access</h2>
+        <p style={{ color: "#555", fontSize: 13, margin: "0 0 24px" }}>Enter your password to access the admin panel.</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <input
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleLogin()}
+            type="password"
+            placeholder="Password"
+            autoFocus
+            style={{ ...S.input }}
+          />
+          {errore && (
+            <div style={{ background: "#3d1a1a", color: "#f87171", padding: "10px 14px", borderRadius: 10, fontSize: 13 }}>
+              ⚠️ {errore}
+            </div>
+          )}
+          <button onClick={handleLogin} style={{ ...S.btn, ...S.btnGold, width: "100%", padding: 13 }}>
+            Access →
+          </button>
+          <button onClick={onClose} style={{ ...S.btn, ...S.btnDark, width: "100%", padding: 11, fontSize: 13 }}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main App ────────────────────────────────────────────────────
 export default function App() {
   const [lang, setLang] = useState("en");
   const t = T[lang];
-  const [view, setView] = useState("coaches");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTopic, setSelectedTopic] = useState(null);
@@ -696,7 +746,6 @@ export default function App() {
     setSelectedTopic(null);
   };
 
-  const isAdmin = view === "admin";
   const pendingCount = topics.filter(tp => tp.stato === "in attesa").length;
 
   const filtered = topics.filter(tp => {
@@ -711,6 +760,13 @@ export default function App() {
 
   return (
     <div style={S.page}>
+      {showAdminLogin && (
+        <AdminLoginModal
+          t={t}
+          onLogin={() => { setIsAdmin(true); setShowAdminLogin(false); }}
+          onClose={() => setShowAdminLogin(false)}
+        />
+      )}
       <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
 
       <header style={S.header}>
@@ -723,15 +779,18 @@ export default function App() {
             style={{ ...S.btn, background: "none", color: "#888", fontSize: 12, padding: "6px 12px" }}>
             {t.langToggle}
           </button>
-          <div style={{ display: "flex", background: "#151515", borderRadius: 10, padding: 3, gap: 3 }}>
-            <button onClick={() => { setView("coaches"); setShowForm(false); setShowPropose(false); setShowPending(false); setSelectedTopic(null); }}
-              style={{ ...S.btn, fontSize: 12, padding: "7px 14px", background: !isAdmin ? "#c8a96e" : "transparent", color: !isAdmin ? "#0a0a0a" : "#666" }}>
-              👤 {t.coaches}
-            </button>
-            <button onClick={() => { setView("admin"); setShowForm(false); setShowPropose(false); setShowPending(false); setSelectedTopic(null); }}
-              style={{ ...S.btn, fontSize: 12, padding: "7px 14px", background: isAdmin ? "#c8a96e" : "transparent", color: isAdmin ? "#0a0a0a" : "#666" }}>
-              ⚙️ {t.admin}
-            </button>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {isAdmin ? (
+              <button onClick={() => { setIsAdmin(false); setShowForm(false); setShowPending(false); setSelectedTopic(null); }}
+                style={{ ...S.btn, background: "#1e1e1e", color: "#f87171", fontSize: 12, padding: "7px 14px" }}>
+                ⚙️ Exit Admin
+              </button>
+            ) : (
+              <button onClick={() => setShowAdminLogin(true)}
+                style={{ ...S.btn, background: "none", color: "#333", fontSize: 11, padding: "6px 10px", border: "1px solid #1e1e1e" }}>
+                ⚙️
+              </button>
+            )}
           </div>
         </div>
       </header>

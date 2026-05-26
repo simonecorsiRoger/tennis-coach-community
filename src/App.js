@@ -1,6 +1,54 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabase";
 
+// ── Translation via Claude API ──────────────────────────────────
+async function translateText(text, targetLang) {
+  if (!text || targetLang === "en") return text;
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: `Translate the following text to Italian. Return ONLY the translated text, no explanations, no quotes, no preamble:\n\n${text}`
+        }]
+      })
+    });
+    const data = await response.json();
+    return data.content?.[0]?.text || text;
+  } catch {
+    return text;
+  }
+}
+
+function useTranslation(text, lang) {
+  const [translated, setTranslated] = useState(text);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (lang === "en") {
+      setTranslated(text);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    translateText(text, lang).then(result => {
+      if (!cancelled) {
+        setTranslated(result);
+        setLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [text, lang]);
+
+  return { translated, loading };
+}
+
+
+
 const CATEGORIE = [
   { key: "all", en: "🌍 All", it: "🌍 Tutti" },
   { key: "technical", en: "🎯 Technical", it: "🎯 Tecnico" },
@@ -205,6 +253,27 @@ function CategoryBadge({ catKey, lang }) {
   return <span style={{ ...S.tag, marginRight: 6 }}>{cat[lang]}</span>;
 }
 
+
+// ── Translated Text Component ───────────────────────────────────
+function TranslatedText({ text, lang, style, className }) {
+  const { translated, loading } = useTranslation(text, lang);
+  return (
+    <span style={{ ...style, opacity: loading ? 0.5 : 1, transition: "opacity 0.3s" }}>
+      {translated}
+    </span>
+  );
+}
+
+// ── Translated Block Component (for paragraphs) ─────────────────
+function TranslatedBlock({ text, lang, tag: Tag = "p", style }) {
+  const { translated, loading } = useTranslation(text, lang);
+  return (
+    <Tag style={{ ...style, opacity: loading ? 0.5 : 1, transition: "opacity 0.3s" }}>
+      {translated}
+    </Tag>
+  );
+}
+
 // ── Proponi Argomento ───────────────────────────────────────────
 function ProponiArgomento({ t, onSubmit, onCancel }) {
   const [titolo, setTitolo] = useState("");
@@ -386,10 +455,10 @@ function TopicCard({ topic, t, lang, onClick, isAdmin, onEdit, onDelete }) {
         <span style={{ fontSize: 12, color: "#444", flexShrink: 0, marginLeft: 8 }}>{timeAgo(topic.created_at, t)}</span>
       </div>
       <h3 onClick={onClick} style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 700, color: "#f0ebe3", margin: "0 0 10px", cursor: "pointer", lineHeight: 1.3 }}>
-        {topic.title}
+        <TranslatedText text={topic.title} lang={lang} />
       </h3>
       <p style={{ color: "#666", fontSize: 14, lineHeight: 1.7, margin: "0 0 20px" }}>
-        {topic.content.length > 180 ? topic.content.slice(0, 180) + "..." : topic.content}
+        <TranslatedText text={topic.content.length > 180 ? topic.content.slice(0, 180) + "..." : topic.content} lang={lang} />
       </p>
       {topic.image_url && (
         <div style={{ borderRadius: 10, overflow: "hidden", marginBottom: 16, maxHeight: 200 }}>
@@ -432,7 +501,7 @@ function TopicCard({ topic, t, lang, onClick, isAdmin, onEdit, onDelete }) {
 }
 
 // ── Comment Card ────────────────────────────────────────────────
-function CommentCard({ c, t, isAdmin, onDelete, onLike, onRate, ratedIds, likedIds }) {
+function CommentCard({ c, t, lang, isAdmin, onDelete, onLike, onRate, ratedIds, likedIds }) {
   const alreadyRated = ratedIds.includes(c.id);
   const alreadyLiked = likedIds.includes(c.id);
   return (
@@ -452,7 +521,7 @@ function CommentCard({ c, t, isAdmin, onDelete, onLike, onRate, ratedIds, likedI
           {isAdmin && <button onClick={() => onDelete(c.id)} style={{ ...S.btn, ...S.btnRed, padding: "4px 10px", fontSize: 11 }}>✕</button>}
         </div>
       </div>
-      <p style={{ color: "#aaa", fontSize: 14, lineHeight: 1.7, margin: "0 0 16px", whiteSpace: "pre-wrap" }}>{c.testo}</p>
+      <TranslatedBlock text={c.testo} lang={lang} tag="p" style={{ color: "#aaa", fontSize: 14, lineHeight: 1.7, margin: "0 0 16px", whiteSpace: "pre-wrap" }} />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid #1a1a1a", paddingTop: 14, flexWrap: "wrap", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {!alreadyRated ? (
@@ -552,8 +621,8 @@ function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
           {topic.image_url && <span style={S.tag}>🖼️ IMAGE</span>}
           {topic.external_link && <span style={S.tag}>🔗 LINK</span>}
         </div>
-        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 36, fontWeight: 700, color: "#f0ebe3", margin: "0 0 20px", lineHeight: 1.2 }}>{topic.title}</h1>
-        <p style={{ color: "#888", fontSize: 15, lineHeight: 1.8, margin: "0 0 24px", whiteSpace: "pre-wrap" }}>{topic.content}</p>
+        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 36, fontWeight: 700, color: "#f0ebe3", margin: "0 0 20px", lineHeight: 1.2 }}><TranslatedText text={topic.title} lang={lang} /></h1>
+        <TranslatedBlock text={topic.content} lang={lang} tag="p" style={{ color: "#888", fontSize: 15, lineHeight: 1.8, margin: "0 0 24px", whiteSpace: "pre-wrap" }} />
         {topic.image_url && (
           <div style={{ borderRadius: 12, overflow: "hidden", marginBottom: 24 }}>
             <img src={topic.image_url} alt="" style={{ width: "100%", objectFit: "cover", maxHeight: 400 }} onError={e => e.target.style.display = "none"} />
@@ -621,7 +690,7 @@ function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
         <div style={{ textAlign: "center", padding: "40px 0", color: "#444", fontSize: 15 }}>{t.noComments}</div>
       ) : (
         sortedComments.map(c => (
-          <CommentCard key={c.id} c={c} t={t} isAdmin={isAdmin}
+          <CommentCard key={c.id} c={c} t={t} lang={lang} isAdmin={isAdmin}
             onDelete={eliminaCommento} onLike={handleLike} onRate={handleRate}
             ratedIds={ratedIds} likedIds={likedIds} />
         ))
@@ -863,8 +932,8 @@ export default function App() {
                 <div style={{ borderLeft: "3px solid #c8a96e", paddingLeft: 20, marginBottom: 28 }}>
                   <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(14px, 3.5vw, 18px)", color: "#c8a96e", fontStyle: "italic", lineHeight: 1.7, margin: 0 }}>
                     {lang === "it"
-                      ? "&ldquo;La crescita vera non nasce da ciò che sai &mdash; nasce dal coraggio di mettere ciò che sai a confronto con chi la pensa diversamente da te.&rdquo;"
-                      : "&ldquo;True growth does not come from what you know &mdash; it comes from the courage to put what you know in confrontation with those who think differently from you.&rdquo;"}
+                      ? "“La crescita vera non nasce da ciò che sai — nasce dal coraggio di mettere ciò che sai a confronto con chi la pensa diversamente da te.”"
+                      : "“True growth does not come from what you know — it comes from the courage to put what you know in confrontation with those who think differently from you.”"}
                   </p>
                 </div>
 
@@ -896,8 +965,8 @@ export default function App() {
                 <div style={{ borderTop: "1px solid #1e1e1e", paddingTop: 24 }}>
                   <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: "#555", fontStyle: "italic", lineHeight: 1.7, margin: "0 0 8px" }}>
                     {lang === "it"
-                      ? "&ldquo;Se tu hai una mela e io ho una mela e ce le scambiamo, abbiamo entrambi ancora una mela. Ma se tu hai un'idea e io ho un'idea e ce le scambiamo, abbiamo entrambi due idee.&rdquo;"
-                      : "&ldquo;If you have an apple and I have an apple and we exchange apples, we both still have one apple. But if you have an idea and I have an idea and we exchange ideas, we each now have two ideas.&rdquo;"}
+                      ? "“Se tu hai una mela e io ho una mela e ce le scambiamo, abbiamo entrambi ancora una mela. Ma se tu hai un'idea e io ho un'idea e ce le scambiamo, abbiamo entrambi due idee.”"
+                      : "“If you have an apple and I have an apple and we exchange apples, we both still have one apple. But if you have an idea and I have an idea and we exchange ideas, we each now have two ideas.”"}
                   </p>
                   <p style={{ color: "#444", fontSize: 13, margin: 0, textAlign: "right" }}>— George Bernard Shaw</p>
                 </div>

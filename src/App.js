@@ -3,7 +3,10 @@ import { supabase } from "./supabase";
 
 // ── Translate comment via Claude API ────────────────────────────
 async function translateComment(text, targetLang) {
-  const langName = targetLang === "it" ? "Italian" : "English";
+  const langName = targetLang === "it" ? "italiano" : "English";
+  const instruction = targetLang === "it"
+    ? `Traduci il seguente testo in italiano. Rispondi SOLO con il testo tradotto, senza spiegazioni, senza virgolette, senza altro testo:`
+    : `Translate the following text to English. Reply ONLY with the translated text, no explanations, no quotes, no other text:`;
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -13,7 +16,7 @@ async function translateComment(text, targetLang) {
         max_tokens: 1000,
         messages: [{
           role: "user",
-          content: `Translate the following text to ${langName}. Return ONLY the translated text, nothing else:\n\n${text}`
+          content: `${instruction}\n\n${text}`
         }]
       })
     });

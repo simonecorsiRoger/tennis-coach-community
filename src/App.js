@@ -5,10 +5,16 @@ import { supabase } from "./supabase";
 async function translateComment(text, targetLang) {
   try {
     const target = targetLang === "it" ? "it" : "en";
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=auto|${target}`;
+    const source = targetLang === "it" ? "en" : "it";
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${source}|${target}`;
     const response = await fetch(url);
     const data = await response.json();
-    return data.responseData?.translatedText || text;
+    if (data.responseData?.translatedText) return data.responseData.translatedText;
+    // fallback: try with different source
+    const url2 = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${target}`;
+    const response2 = await fetch(url2);
+    const data2 = await response2.json();
+    return data2.responseData?.translatedText || text;
   } catch {
     return text;
   }

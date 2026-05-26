@@ -1,6 +1,31 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabase";
 
+// ── Translate comment via Claude API ────────────────────────────
+async function translateComment(text, targetLang) {
+  const langName = targetLang === "it" ? "Italian" : "English";
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: `Translate the following text to ${langName}. Return ONLY the translated text, nothing else:\n\n${text}`
+        }]
+      })
+    });
+    const data = await response.json();
+    return data.content?.[0]?.text || text;
+  } catch {
+    return text;
+  }
+}
+
+
+
 
 const CATEGORIE = [
   { key: "all", en: "🌍 All", it: "🌍 Tutti" },
@@ -441,7 +466,17 @@ function TopicCard({ topic, t, lang, onClick, isAdmin, onEdit, onDelete }) {
 }
 
 // ── Comment Card ────────────────────────────────────────────────
-function CommentCard({ c, t, isAdmin, onDelete, onLike, onRate, ratedIds, likedIds }) {
+function CommentCard({ c, t, lang, isAdmin, onDelete, onLike, onRate, ratedIds, likedIds }) {
+  const [translatedText, setTranslatedText] = useState(null);
+  const [translating, setTranslating] = useState(false);
+
+  const handleTranslate = async () => {
+    if (translatedText) { setTranslatedText(null); return; }
+    setTranslating(true);
+    const result = await translateComment(c.testo, lang);
+    setTranslatedText(result);
+    setTranslating(false);
+  };
   const alreadyRated = ratedIds.includes(c.id);
   const alreadyLiked = likedIds.includes(c.id);
   return (
@@ -461,7 +496,19 @@ function CommentCard({ c, t, isAdmin, onDelete, onLike, onRate, ratedIds, likedI
           {isAdmin && <button onClick={() => onDelete(c.id)} style={{ ...S.btn, ...S.btnRed, padding: "4px 10px", fontSize: 11 }}>✕</button>}
         </div>
       </div>
-      <p style={{ color: "#aaa", fontSize: 14, lineHeight: 1.7, margin: "0 0 16px", whiteSpace: "pre-wrap" }}>{c.testo}</p>
+      <p style={{ color: "#aaa", fontSize: 14, lineHeight: 1.7, margin: "0 0 10px", whiteSpace: "pre-wrap" }}>{c.testo}</p>
+      {translatedText && (
+        <div style={{ background: "#0a0a0a", border: "1px solid #c8a96e22", borderRadius: 10, padding: "10px 14px", marginBottom: 12 }}>
+          <div style={{ fontSize: 11, color: "#c8a96e", fontWeight: 700, marginBottom: 6, letterSpacing: 1 }}>
+            {lang === "it" ? "🇮🇹 TRADUZIONE" : "🇬🇧 TRANSLATION"}
+          </div>
+          <p style={{ color: "#888", fontSize: 14, lineHeight: 1.7, margin: 0, whiteSpace: "pre-wrap", fontStyle: "italic" }}>{translatedText}</p>
+        </div>
+      )}
+      <button onClick={handleTranslate} disabled={translating}
+        style={{ background: "none", border: "none", cursor: "pointer", color: translatedText ? "#c8a96e" : "#444", fontSize: 12, padding: "0 0 8px", fontFamily: "inherit", fontStyle: "italic" }}>
+        {translating ? "⏳ Translating..." : translatedText ? (lang === "it" ? "✕ Nascondi traduzione" : "✕ Hide translation") : (lang === "it" ? "🌐 Traduci" : "🌐 Translate")}
+      </button>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid #1a1a1a", paddingTop: 14, flexWrap: "wrap", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {!alreadyRated ? (
@@ -630,7 +677,7 @@ function TopicDetail({ topic, t, lang, onBack, isAdmin, onEdit, onDelete }) {
         <div style={{ textAlign: "center", padding: "40px 0", color: "#444", fontSize: 15 }}>{t.noComments}</div>
       ) : (
         sortedComments.map(c => (
-          <CommentCard key={c.id} c={c} t={t} isAdmin={isAdmin}
+          <CommentCard key={c.id} c={c} t={t} lang={lang} isAdmin={isAdmin}
             onDelete={eliminaCommento} onLike={handleLike} onRate={handleRate}
             ratedIds={ratedIds} likedIds={likedIds} />
         ))

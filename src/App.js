@@ -4,18 +4,11 @@ import { supabase } from "./supabase";
 // ── Translate comment via Claude API ────────────────────────────
 async function translateComment(text, targetLang) {
   try {
-    const response = await fetch("https://libretranslate.com/translate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        q: text,
-        source: "auto",
-        target: targetLang === "it" ? "it" : "en",
-        format: "text"
-      })
-    });
+    const target = targetLang === "it" ? "it" : "en";
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=auto|${target}`;
+    const response = await fetch(url);
     const data = await response.json();
-    return data.translatedText || text;
+    return data.responseData?.translatedText || text;
   } catch {
     return text;
   }

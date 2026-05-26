@@ -3,25 +3,19 @@ import { supabase } from "./supabase";
 
 // ── Translate comment via Claude API ────────────────────────────
 async function translateComment(text, targetLang) {
-  const langName = targetLang === "it" ? "italiano" : "English";
-  const instruction = targetLang === "it"
-    ? `Traduci il seguente testo in italiano. Rispondi SOLO con il testo tradotto, senza spiegazioni, senza virgolette, senza altro testo:`
-    : `Translate the following text to English. Reply ONLY with the translated text, no explanations, no quotes, no other text:`;
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://libretranslate.com/translate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{
-          role: "user",
-          content: `${instruction}\n\n${text}`
-        }]
+        q: text,
+        source: "auto",
+        target: targetLang === "it" ? "it" : "en",
+        format: "text"
       })
     });
     const data = await response.json();
-    return data.content?.[0]?.text || text;
+    return data.translatedText || text;
   } catch {
     return text;
   }
